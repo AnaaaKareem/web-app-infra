@@ -1,0 +1,43 @@
+name: Build Infrastructure
+
+on:
+  push:
+    branches:
+      - 'main'
+
+  pull_request:
+    branches:
+      - 'main'
+
+jobs:
+  
+  BuildInfrastructure:
+    
+    runs-on: ubuntu-latest
+    env:
+      TF_VAR_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      TF_VAR_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
+    steps:
+      - uses: actions/checkout@v5
+      
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.1.7"
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config="access_key=${{ secrets.AWS_ACCESS_KEY_ID }}" -backend-config="secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" -input=false
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -input=false
+        continue-on-error: true
+
+      - name: Terraform Apply
+        id: Apply
+        run: terraform apply -auto-approve -no-color
