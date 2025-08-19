@@ -40,4 +40,4 @@ jobs:
 
       - name: Terraform Apply
         id: Apply
-        run: terraform apply -auto-approve -no-color
+        run: terraform apply -lock=false -auto-approve -no-color
