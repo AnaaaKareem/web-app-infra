@@ -1,0 +1,45 @@
+#!/bin/bash
+# Log everything to a file for easier debugging
+exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+# Update package manager and install Nginx
+echo "Starting user data script execution..."
+sudo apt update -y
+if [ $? -ne 0 ]; then
+    echo "apt-get update failed. Please check internet connectivity."
+    exit 1
+fi
+
+sudo apt install -y nginx
+if [ $? -ne 0 ]; then
+    echo "nginx installation failed."
+    exit 1
+fi
+
+# Start and enable Nginx service
+sudo systemctl enable nginx
+sudo systemctl start nginx
+
+echo "Nginx installed and started."
+
+# Create a dynamic index.html page
+# The values for name and date will be passed in from Terraform.
+sudo cat <<EOF > /var/www/html/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello from Terraform</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Hello from Karim</h1>
+        <h2>Date: 20/08/2025</h2>
+    </div>
+</body>
+</html>
+EOF
+
+echo "Index.html created successfully."
+echo "User data script finished."

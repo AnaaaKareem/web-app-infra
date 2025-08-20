@@ -1,5 +1,5 @@
 resource "aws_launch_template" "launch" {
-  name = "nginx-server-"
+  name = "${var.name_prefix}-nginx-server-lt"
 
   image_id = var.ami
   instance_type = var.instance_type
@@ -8,36 +8,28 @@ resource "aws_launch_template" "launch" {
   network_interfaces {
     associate_public_ip_address = true
     security_groups = [aws_security_group.ec2sg.id]
-    subnet_id = var.public_subnet_ids[0]
   }
 
-  user_data = base64encode(<<EOF
-            #!/bin/bash
+  user_data = base64encode(templatefile("${path.module}/user_data.tftpl", {
+    name = "Karim"
+    date = formatdate("DD MMMM YYYY", timestamp())
+  }))
 
-            # Nginx Server
-            sudo apt update -y
-            sudo apt install -y nginx
-            sudo systemctl enable nginx
-            sudo systemctl start nginx
-            sudo echo "<html>" >> /var/www/html/index.html
-            sudo echo "<body>" >> /var/www/html/index.html
-            sudo echo "<h1>Hello from Karim</h1>" >> /var/www/html/index.html
-            sudo echo "<h2>Date: 19/08/2025</h2>" >> /var/www/html/index.html
-            sudo echo "</body>" >> /var/www/html/index.html
-            sudo echo "</html>" >> /var/www/html/index.html
-            EOF
-  )
+  tags = {
+    Name = "${var.name_prefix}-nginx-launch-template"
+  }
 }
 
 resource "aws_autoscaling_group" "autoscaler" {
-  name                      = "Web Autoscaler"
-  max_size                  = 4
+  name                      = "${var.name_prefix}-Web-Autoscaler"
+  max_size                  = 2
   min_size                  = 2
   health_check_grace_period = 400
   health_check_type         = "ELB"
-  desired_capacity          = 3
+  desired_capacity          = 2
   force_delete              = true
   vpc_zone_identifier       = var.public_subnet_ids
+  target_group_arns = [aws_lb_target_group.tg.arn]
 
   instance_maintenance_policy {
     min_healthy_percentage = 40
@@ -48,6 +40,7 @@ resource "aws_autoscaling_group" "autoscaler" {
     id      = aws_launch_template.launch.id
     version = "$Latest"
   }
+  depends_on = [ aws_launch_template.launch ]
 }
 
 resource "aws_security_group" "ec2sg" {
@@ -59,6 +52,7 @@ resource "aws_security_group" "ec2sg" {
       from_port   = 80
       to_port     = 80
       protocol    = "tcp"
+      #security_groups = [aws_security_group.albsg.id]
       cidr_blocks = ["0.0.0.0/0"]
     }
   
@@ -74,7 +68,7 @@ resource "aws_security_group" "ec2sg" {
       from_port   = 0
       to_port     = 0
       protocol    = "-1"
-      cidr_blocks = [var.cidr_block]
+      cidr_blocks = ["0.0.0.0/0"]
   }
   
 }
@@ -100,10 +94,41 @@ resource "aws_security_group" "albsg" {
   
 }
 
+resource "aws_lb_target_group" "tg" {
+  name     = "nginx-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+  health_check {
+    path                = "/"
+    interval            = 30
+    timeout             = 5
+    healthy_threshold   = 5
+    unhealthy_threshold = 2
+    matcher             = "200"
+  }
+}
+
+resource "aws_lb_listener" "listener" {
+  load_balancer_arn = aws_lb.load_balancer.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tg.arn
+  }
+}
+
 resource "aws_lb" "load_balancer" {
   name               = "k-load-balancer"
   internal           = false
   load_balancer_type = "application"
+  ip_address_type = "ipv4"
   security_groups    = [aws_security_group.albsg.id]
   subnets            = var.public_subnet_ids
+
+  tags = {
+    Name = "Load_Balance"
+  }
 }

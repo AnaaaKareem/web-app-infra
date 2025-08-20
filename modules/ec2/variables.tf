@@ -1,3 +1,8 @@
+variable "name_prefix" {
+  type = string
+  default = "Test"
+}
+
 variable "ami" {
   type    = string
   default = "ami-042b4708b1d05f512"

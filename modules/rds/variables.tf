@@ -63,10 +63,14 @@ variable "instance_type" {
   default = "t3.micro"
 }
 
-variable "ps_ids" {
+variable "pub_ids" {
   type = list(string)
 }
 
 variable "ec2sg" {
+  type = string
+}
+
+variable "vpc_id" {
   type = string
 }

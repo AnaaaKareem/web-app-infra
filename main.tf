@@ -11,10 +11,11 @@ module "ec2" {
 
 module "rds" {
     source = "./modules/rds"
+    vpc_id = module.vpc.vpc_id
     private_subnet_ids = module.vpc.private_subnet_ids
     ami = module.ec2.ami
     ec2sg = module.ec2.ec2sg
-    ps_ids = [ module.vpc.public_subnet_ids[0] ]
+    pub_ids = [ module.vpc.public_subnet_ids[0] ]
 }
 
 module "s3" {
@@ -28,23 +29,13 @@ module "iam" {
   rds_arn = module.rds.sm_arn
 }
 
-resource "aws_dynamodb_table" "tf_locks" {
-  name         = "terraform-locks"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-}
-
 terraform {
   backend "s3" {
     bucket = "tfk-state"
     key    = "./terraform.tfstate"
     region = "eu-north-1"
     dynamodb_table = "terraform-locks"
+    use_lockfile = true
     encrypt = true
   }
 }

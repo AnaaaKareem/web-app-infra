@@ -1,0 +1,41 @@
+#!/bin/bash -xe
+# The '-xe' flags mean the script will exit immediately if a command fails and print commands before executing them.
+
+# Update packages and install required tools
+# For Amazon Linux 2, we use yum
+sudo apt update -y
+sudo apt install -y mysql jq aws-cli
+
+# Retrieve the secret from AWS Secrets Manager
+# The region and secret ARN are passed in by Terraform
+SECRET=$(aws secretsmanager get-secret-value --secret-id "${secret_arn}" --query SecretString --output text --region "${region}")
+
+# Check if the secret was retrieved successfully
+if [ -z "$SECRET" ]; then
+    echo "Failed to retrieve secret from Secrets Manager"
+    exit 1
+fi
+
+# Parse the connection details from the secret JSON
+USERNAME=$(echo $SECRET | jq -r '.username')
+PASSWORD=$(echo $SECRET | jq -r '.password')
+HOST=$(echo $SECRET | jq -r '.host')
+DBNAME=$(echo $SECRET | jq -r '.dbname')
+
+# Securely connect to the database and run SQL commands
+# The MYSQL_PWD environment variable is a more secure way to provide the password
+export MYSQL_PWD="$PASSWORD"
+mysql -h "$HOST" -u "$USERNAME" "$DBNAME" <<EOF
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO users (name) VALUES ('Karim Khater - Test Record');
+SELECT * FROM users;
+EOF
+
+# Unset the password variable for security
+unset MYSQL_PWD
+
+echo "Successfully connected to RDS and inserted a record."
