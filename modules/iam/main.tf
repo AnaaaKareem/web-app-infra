@@ -1,5 +1,5 @@
 resource "aws_iam_role" "EC2-role" {
-  name = "EC2-Role"
+  name = var.ec2_role_name
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -7,7 +7,7 @@ resource "aws_iam_role" "EC2-role" {
       {
         Effect = "Allow"
         Principal = {
-          Service = "s3.amazonaws.com"
+          Service = var.ec2_assume_service
         }
         Action = "sts:AssumeRole"
       }
@@ -16,7 +16,7 @@ resource "aws_iam_role" "EC2-role" {
 }
 
 resource "aws_iam_policy" "EC2-policy" {
-  name = "EC2-Policy"
+  name = var.ec2_policy_name
 
   policy = templatefile("modules/iam/policy.json", {
     s3_arn = var.s3_arn,

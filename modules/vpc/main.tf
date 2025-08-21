@@ -14,7 +14,7 @@ resource "aws_subnet" "public_subnets" {
   availability_zone = var.availability_zones[count.index]
 
   tags = {
-    Name = "Karim Public Subnet ${count.index}"
+    Name = "${var.public_subnet_name_prefix} ${count.index}"
   }
 }
 
@@ -26,7 +26,7 @@ resource "aws_subnet" "private_subnets" {
   availability_zone = var.availability_zones[count.index]
 
   tags = {
-    Name = "Karim Private Subnet ${count.index}"
+    Name = "${var.private_subnet_name_prefix} ${count.index}"
   }
 }
 
@@ -34,23 +34,24 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
 
   tags = {
-    Name = "Karim-igw"
+    Name = var.igw_name
   }
 }
 
 resource "aws_eip" "nat" {
-  domain = "vpc"
+  domain = var.eip_domain
+
   tags = {
-    Name = "nat-eip"
+    Name = var.eip_name
   }
 }
 
 resource "aws_nat_gateway" "ngw" {
   allocation_id = aws_eip.nat.id
-  subnet_id = aws_subnet.public_subnets[0].id
+  subnet_id     = aws_subnet.public_subnets[0].id
 
   tags = {
-    Name = "Karim-ngw"
+    Name = var.ngw_name
   }
 
   depends_on = [aws_internet_gateway.igw]
@@ -60,12 +61,12 @@ resource "aws_route_table" "public_route_table" {
   vpc_id = aws_vpc.vpc.id
 
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block = var.public_route_cidr
     gateway_id = aws_internet_gateway.igw.id
   }
 
   tags = {
-    Name = "Karim-pub-rt"
+    Name = var.public_rt_name
   }
 }
 
@@ -79,12 +80,12 @@ resource "aws_route_table" "private_route_table" {
   vpc_id = aws_vpc.vpc.id
 
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block = var.private_route_cidr
     gateway_id = aws_nat_gateway.ngw.id
   }
 
   tags = {
-    Name = "Karim-prv-rt"
+    Name = var.private_rt_name
   }
 }
 

@@ -74,3 +74,48 @@ variable "ec2sg" {
 variable "vpc_id" {
   type = string
 }
+
+variable "db_publicly_accessible" {
+  type    = bool
+  default = false
+}
+
+variable "db_subnet_group_name" {
+  type    = string
+  default = "db-private-subnets"
+}
+
+variable "kms_enable_key_rotation" {
+  type    = bool
+  default = false
+}
+
+variable "kms_deletion_window_in_days" {
+  type    = number
+  default = 7
+}
+
+variable "rds_secret_name" {
+  type    = string
+  default = "k_db_rds_cred"
+}
+
+variable "db_sg_name" {
+  type    = string
+  default = "Karim-DB"
+}
+
+variable "db_app_key_name" {
+  type    = string
+  default = "sandbox"
+}
+
+variable "region" {
+  type    = string
+  default = "eu-north-1"
+}
+
+variable "db_app_name" {
+  type    = string
+  default = "DB"
+}

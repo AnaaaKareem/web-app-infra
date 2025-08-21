@@ -1,13 +1,9 @@
 name: Build Infrastructure
 
-# on:
-#   push:
-#     branches:
-#       - 'main'
-
-#   pull_request:
-#     branches:
-#       - 'main'
+on:
+  push:
+    branches:
+      - 'main'
 
 jobs:
   
@@ -36,7 +32,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color -input=false
-        continue-on-error: true
+        continue-on-error: false
 
       - name: Terraform Apply
         id: Apply

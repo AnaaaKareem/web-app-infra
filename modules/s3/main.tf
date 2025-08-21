@@ -1,15 +1,15 @@
 resource "aws_s3_bucket" "bucket" {
-  bucket = "karim-bucket-terraform-test-9"
+  bucket = var.s3_bucket_name
 
   tags = {
-    Name = "Karim"
+    Name = var.s3_bucket_tag_name
   }
 }
 
 resource "aws_s3_bucket_versioning" "versioning" {
   bucket = aws_s3_bucket.bucket.id
   versioning_configuration {
-    status = "Enabled"
+    status = var.s3_bucket_versioning_status
   }
 }
 
@@ -17,17 +17,17 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "enc" {
   bucket = aws_s3_bucket.bucket.id
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
+      sse_algorithm = var.s3_bucket_sse_algorithm
     }
   }
 }
 
 resource "aws_s3_bucket_public_access_block" "block_public_access" {
   bucket                  = aws_s3_bucket.bucket.id
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  block_public_acls       = var.s3_block_public_acls
+  block_public_policy     = var.s3_block_public_policy
+  ignore_public_acls      = var.s3_ignore_public_acls
+  restrict_public_buckets = var.s3_restrict_public_buckets
 }
 
 resource "aws_s3_bucket_policy" "role_acess" {

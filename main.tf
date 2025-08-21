@@ -31,11 +31,11 @@ module "iam" {
 
 terraform {
   backend "s3" {
-    bucket = "tfk-state"
-    key    = "./terraform.tfstate"
-    region = "eu-north-1"
+    bucket         = "tfk-state"
+    key            = "./terraform.tfstate"
+    region         = "eu-north-1"
     dynamodb_table = "terraform-locks"
-    use_lockfile = true
-    encrypt = true
+    use_lockfile   = true
+    encrypt        = true
   }
 }
