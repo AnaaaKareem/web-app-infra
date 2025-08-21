@@ -23,9 +23,9 @@ HOST=$(echo $SECRET | jq -r '.host')
 DBNAME=$(echo $SECRET | jq -r '.dbname')
 
 # Securely connect to the database and run SQL commands
-# The MYSQL_PWD environment variable is a more secure way to provide the password
 export MYSQL_PWD="$PASSWORD"
-mysql -h "$HOST" -u "$USERNAME" "$DBNAME" <<EOF
+mysql -h "$HOST" -u "$USERNAME" -p 
+"$PASSWORD"<<EOF
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
