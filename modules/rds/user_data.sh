@@ -9,9 +9,11 @@ HOST=$(echo $SECRET | jq -r '.host')
 DBNAME=$(echo $SECRET | jq -r '.dbname')
 
 sudo mysql -h $HOST -u $USERNAME -p $PASSWORD $DBNAME <<EOF
+CREATE DATABASE users;
+USE users;
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100)
 );
-INSERT INTO users (name) VALUES ('Karim Khater');
+INSERT INTO users (id, name) VALUES (1, 'Karim Khater');
 EOF
