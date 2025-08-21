@@ -4,7 +4,7 @@
 # Update packages and install required tools
 # For Amazon Linux 2, we use yum
 sudo apt update -y
-sudo apt install -y mysql-client jq aws-cli
+sudo apt install -y mysql-client-core-8.0 jq aws-cli
 
 # Retrieve the secret from AWS Secrets Manager
 # The region and secret ARN are passed in by Terraform
